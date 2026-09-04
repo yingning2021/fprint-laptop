@@ -1,0 +1,79 @@
+# Maintainer: fprint-laptop contributors
+
+pkgname=libfprint-oms2388
+pkgver=1.94.100
+pkgrel=3
+pkgdesc='libfprint with the OMS/O-Film 33a7:2388 Match-on-Chip driver'
+arch=('x86_64')
+url='https://fprint.freedesktop.org/'
+license=('LGPL-2.1-or-later')
+groups=('fprint')
+depends=(
+  glib2
+  glibc
+  libgcc
+  libgudev
+  libgusb
+  openssl
+  pixman
+)
+makedepends=(
+  git
+  glib2-devel
+  gobject-introspection
+  meson
+  ninja
+)
+provides=(
+  "libfprint=${pkgver}"
+  'libfprint-2.so=2-64'
+)
+conflicts=('libfprint')
+
+_commit=c4654fdc85c25afdd9115bec2f95a44145ae3b94
+_libfprint_git_url=${LIBFPRINT_GIT_URL:-https://gitlab.freedesktop.org/libfprint/libfprint.git}
+source=(
+  "libfprint::git+${_libfprint_git_url}#commit=${_commit}"
+  integration.patch
+  oms2388.c
+  oms2388.h
+  fprintd-oms2388.conf
+)
+sha256sums=(
+  'SKIP'
+  '63b458a4751e02b3c3c6b7d98debf8e14495c7c6ff6752a551bbbe4e17b841f3'
+  '0525ec79f8f25e8f662a4af1ab4af3354bd6505b56de40256a4f1eadcb86d1aa'
+  '79cf7d80ea55d08cb1406e339b8024d4adee236c2f212c3c9d7ba8a78d01c8fb'
+  'ff251db6fa39bccb3efe6757644810125897a1e2f658dc09584b7805e15a825f'
+)
+
+prepare() {
+  cd libfprint
+  git apply ../integration.patch
+  install -Dm644 ../oms2388.c libfprint/drivers/oms2388/oms2388.c
+  install -Dm644 ../oms2388.h libfprint/drivers/oms2388/oms2388.h
+}
+
+build() {
+  arch-meson libfprint build \
+    -Ddrivers=default \
+    -Dintrospection=true \
+    -Ddoc=false \
+    -Dinstalled-tests=false \
+    -Dudev_rules=enabled \
+    -Dudev_hwdb=enabled \
+    -Dwerror=true
+  meson compile -C build
+}
+
+check() {
+  meson test -C build \
+    fpi-device fpi-ssm fpi-assembling udev-hwdb \
+    --print-errorlogs
+}
+
+package() {
+  DESTDIR="$pkgdir" meson install -C build
+  install -Dm644 ../fprintd-oms2388.conf \
+    "$pkgdir/usr/lib/systemd/system/fprintd.service.d/oms2388.conf"
+}

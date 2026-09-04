@@ -1,0 +1,9 @@
+# The vendor package is proprietary and can be re-extracted from the official ZIP.
+vendor/
+
+# USB captures may contain device identifiers and biometric protocol data.
+captures/
+
+build/
+*.o
+

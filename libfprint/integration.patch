@@ -1,0 +1,61 @@
+diff --git a/data/autosuspend.hwdb b/data/autosuspend.hwdb
+index 7c8a860..bc4900d 100644
+--- a/data/autosuspend.hwdb
++++ b/data/autosuspend.hwdb
+@@ -269,6 +269,11 @@ usb:v298Dp2020*
+  ID_AUTOSUSPEND=1
+  ID_PERSIST=0
+ 
++# Supported by libfprint driver oms2388
++usb:v33A7p2388*
++ ID_AUTOSUSPEND=1
++ ID_PERSIST=0
++
+ # Supported by libfprint driver realtek
+ usb:v0BDAp5813*
+ usb:v0BDAp5816*
+@@ -551,7 +556,6 @@ usb:v298Dp2033*
+ usb:v2DF0p0003*
+ usb:v3274p9008*
+ usb:v3274pB012*
+-usb:v33A7p2388*
+ usb:v3538p0930*
+  ID_AUTOSUSPEND=1
+  ID_PERSIST=0
+
+diff --git a/libfprint/fprint-list-udev-hwdb.c b/libfprint/fprint-list-udev-hwdb.c
+index 539f3e6..b72c537 100644
+--- a/libfprint/fprint-list-udev-hwdb.c
++++ b/libfprint/fprint-list-udev-hwdb.c
+@@ -199,7 +199,6 @@ static const FpIdEntry allowlist_id_table[] = {
+   { .vid = 0x2df0, .pid = 0x0003 },
+   { .vid = 0x3274, .pid = 0x9008 },
+   { .vid = 0x3274, .pid = 0xb012 },
+-  { .vid = 0x33a7, .pid = 0x2388 },
+   { .vid = 0x3538, .pid = 0x0930 },
+   /* --- END GENERATED IDS --- */
+   { .vid = 0 },
+diff --git a/libfprint/meson.build b/libfprint/meson.build
+index f11533c..0bc2bc7 100644
+--- a/libfprint/meson.build
++++ b/libfprint/meson.build
+@@ -138,6 +138,7 @@ driver_sources = {
+     'realtek' : files('drivers/realtek/realtek.c'),
+     'focaltech_moc' : files('drivers/focaltech_moc/focaltech_moc.c'),
+     'mafpmoc' : files('drivers/mafpmoc/mafpmoc.c'),
++    'oms2388' : files('drivers/oms2388/oms2388.c'),
+     'secugen' : files('drivers/secugen.c'),
+ }
+ 
+diff --git a/meson.build b/meson.build
+index ab09dc1..e1c86d8 100644
+--- a/meson.build
++++ b/meson.build
+@@ -146,6 +146,7 @@ drivers_info = {
+     'realtek': {},
+     'focaltech_moc': {},
+     'mafpmoc': {},
++    'oms2388': {},
+     'secugen': {},
+ 
+     # SPI driver (non-optional if SPI is available)
